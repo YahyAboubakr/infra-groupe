@@ -1,0 +1,20 @@
+# Secrets
+.env
+*.pem
+*.key
+vault_pass*
+**/vault.yml
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+
+# Ansible
+*.retry
+
+#wazuh
+fetched/
+

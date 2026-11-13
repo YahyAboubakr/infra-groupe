@@ -1,0 +1,4 @@
+# Pose l'agent Wazuh sur les groupes de wazuh_agents (greenbone, dc, zabbix, k8s_nodes).
+- name: Agents Wazuh
+  hosts: wazuh_agents
+  roles: [common, wazuh_agent]

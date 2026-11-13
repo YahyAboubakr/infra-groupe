@@ -1,0 +1,3 @@
+- name: Wazuh all-in-one (indexer + manager + dashboard)
+  hosts: wazuh_server
+  roles: [common, wazuh_server]

@@ -1,0 +1,56 @@
+---
+# TODO :
+#  1. vm.max_map_count=262144 (sysctl, persistant) pour l'indexer
+#  2. télécharger wazuh-install.sh et lancer `bash wazuh-install.sh -a`
+#     (idempotence : sauter si wazuh-manager est déjà installé)
+#  3. récupérer wazuh-install-files.tar -> mots de passe générés (les mettre dans le vault)
+#  4. ossec.conf : bloc <remote> syslog udp/514 pour OPNsense
+#  5. dashboard : authentification LDAP sur l'AD (OpenSearch Security, groupes GG_SOC / GG_Admins_Infra)
+
+- name: Vérifier que les IP autorisées pour le syslog sont définies
+  ansible.builtin.assert:
+    that: wazuh_syslog_allowed_ips | length > 0
+    fail_msg: "Renseigner la variable wazuh_syslog_allowed_ips (IP d'OPNsense)"
+    quiet: true
+
+- name: vm.max_count pour l'indexer
+  ansible.posix.sysctl:
+    name: vm.max_map_count
+    value: "262144"
+    sysctl_set: yes
+    state: present
+    reload: true
+
+- name: Téléchargement de wazuh-install.sh
+  ansible.builtin.get_url:
+    url: "{{ wazuh_install_url }}"
+    dest: /root/wazuh-install.sh
+    mode: "0700"
+
+- name: Installation all-in-one de Wazuh
+  ansible.builtin.command:
+    cmd: bash /root/wazuh-install.sh -a
+    chdir: /root
+    creates: /var/ossec/bin/wazuh-control
+  async: 3600
+  poll: 30
+
+- name: Récupération des mots de passe
+  ansible.builtin.fetch:
+    src: /root/wazuh-install-files.tar
+    dest: "{{ playbook_dir }}/../fetched/"
+    flat: true
+
+- name: Réception syslog(Suricata) dans ossec.conf
+  ansible.builtin.blockinfile:
+    path: /var/ossec/etc/ossec.conf
+    marker: "<!-- {mark} ANSIBLE syslog opnsense -->"
+    insertbefore: "</ossec_config>"
+    block: |
+      <remote>
+        <connection>syslog</connection>
+        <port>{{ wazuh_syslog_port }}</port>
+        <protocol>udp</protocol>
+        <allowed-ips>{{ wazuh_syslog_allowed_ips | join(',') }}</allowed-ips>
+      <remote>
+    notify: restart wazuh-manager

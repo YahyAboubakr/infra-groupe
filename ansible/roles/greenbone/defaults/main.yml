@@ -1,0 +1,6 @@
+---
+greenbone_dir: /opt/greenbone
+greenbone_compose_url: https://greenbone.github.io/docs/latest/_static/compose.yaml
+greenbone_web_port: 9392
+greenbone_admin_password: changeme
+greenbone_bind_address: 0.0.0.0

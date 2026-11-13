@@ -1,0 +1,24 @@
+# Copier en terraform.tfvars (ignoré par Git) puis adapter.
+
+xo_url      = "wss://192.168.1.10"
+xo_insecure = true
+
+xcp_host     = "192.168.1.11"
+xcp_user     = "root"
+xcp_password = "ChangeMe-XCP-Password"
+
+xo_pool_name     = "xcp-ng-pool"
+xo_template_name = "Debian 13 Cloud-Init"
+xo_sr_name       = "Local storage"
+xo_network_name  = "VLAN-30-SOC"
+
+ips = {
+  wazuh1 = "192.168.30.20"
+  gvm1   = "192.168.30.30"
+}
+prefix_len  = 24
+gateway     = "192.168.30.1"
+dns_servers = ["192.168.30.1"] # Mettre l'IP de dc1 quand l'AD est prêt
+
+vm_username = "admin"
+vm_password = "ChangeMe-VM-2026"

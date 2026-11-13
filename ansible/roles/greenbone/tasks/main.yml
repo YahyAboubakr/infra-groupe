@@ -1,0 +1,89 @@
+---
+# TODO :
+#  1. installer Docker Engine + plugin compose (dépôt officiel Docker)
+#  2. télécharger {{ greenbone_compose_url }} dans {{ greenbone_dir }}
+#  3. exposer gsad sur 0.0.0.0:{{ greenbone_web_port }} (par défaut 127.0.0.1)
+#  4. docker compose pull && up -d  (la synchro des feeds prend plusieurs heures)
+#  5. changer le mot de passe admin (gvmd --user=admin --new-password=...)
+#  6. créer les cibles de scan : VLAN IAM, SOC, Services, nœuds K8s
+
+- name: Vérifier que le mot de passe admin est défini
+  ansible.builtin.assert:
+    that: greenbone_admin_password is defined and greenbone_admin_password | length >= 12
+    fail_msg: "Définis greenbone_admin_password (12 caractères min.) dans le vault"
+    quiet: true
+
+- name: Dossier des clés APT
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Clé GPG du dépôt Docker
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Dépôt APT Docker
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+
+- name: "Installation de Docker Engine + plugin compose"
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: "Création du répertoire {{ greenbone_dir }}"
+  ansible.builtin.file:
+    path: "{{ greenbone_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: "Téléchargement de {{ greenbone_compose_url }} dans {{ greenbone_dir }}"
+  ansible.builtin.get_url:
+    url: "{{ greenbone_compose_url }}"
+    dest: "{{ greenbone_dir }}/compose.yaml"
+    mode: "0644"
+
+- name: "Exposition de gsad sur 0.0.0.0:{{ greenbone_web_port }}"
+  ansible.builtin.template:
+    src: compose.override.yaml.j2
+    dest: "{{ greenbone_dir }}/compose.override.yaml"
+    mode: "0644"
+
+- name: "Pull les images Docker et demarrage des conteneurs"
+  community.docker.docker_compose_v2:
+    project_src: "{{ greenbone_dir }}"
+    pull: missing
+    state: present
+
+- name: "Changement du mot de passe admin"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - exec
+      - -T
+      - -u
+      - gvmd
+      - gvmd
+      - gvmd
+      - --user=admin
+      - "--new-password={{ greenbone_admin_password }}"
+    chdir: "{{ greenbone_dir }}"
+  register: gvmd_password
+  until: gvmd_password.rc == 0
+  retries: 30
+  delay: 10
+  no_log: true

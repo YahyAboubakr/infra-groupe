@@ -1,0 +1,57 @@
+---
+# TODO :
+#  1. dépôt APT Wazuh 4.x (clé GPG + sources.list)
+#  2. installer wazuh-agent avec WAZUH_MANAGER={{ wazuh_manager_address }}
+#     et WAZUH_AGENT_GROUP={{ wazuh_agent_group }} (auto-enrôlement sur 1515)
+#  3. ajouter un <localfile> json par entrée de wazuh_extra_json_logs
+#  4. sur les nœuds K8s control-plane : lire le log d'audit de l'API server
+#  5. activer et démarrer le service
+
+- name: Dossier des clés APT
+  ansible.builtin.file:
+    url: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Clé GPG Wazuh
+  ansible.builtin.get_url:
+    url: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    dest: /etc/apt/keyrings/wazuh.asc
+    mode: "0644"
+
+- name: Dépôt APT Wazuh
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/wazuh.asc] https://packages.wazuh.com/4.x/apt/ stable main"
+    filename: wazuh
+    state: present
+
+- name: Installation de Wazuh Agent
+  ansible.builtin.apt:
+    name: wazuh-agent
+    state: present
+    update_cache: true
+  environment:
+    WAZUH_MANAGER: "{{ wazuh_manager_address }}"
+    WAZUH_AGENT_GROUP: "{{ wazuh_agent_group }}"
+  notify: restart wazuh-agent
+
+- name: Logs JSON supplémentaires
+  ansible.builtin.blockinfile:
+    path: /var/ossec/etc/ossec.conf
+    marker: "<!-- {mark} ANSIBLE extra json logs -->"
+    insertbefore: "</ossec_config>"
+    block: |
+      {% for log in wazuh_extra_json_logs %}
+      <localfile>
+        <log_format>json</log_format>
+        <location>{{ log }}</location>
+      </localfile>
+      {% endfor %}
+    when: wazuh_extra_json_logs | length > 0
+    notify: restart wazuh-agent
+
+- name: Activer et démarrer le service Wazuh Agent
+  ansible.builtin.service:
+    name: wazuh-agent
+    enabled: true
+    state: started

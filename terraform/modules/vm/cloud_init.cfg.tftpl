@@ -1,0 +1,31 @@
+#cloud-config
+hostname: ${hostname}
+fqdn: ${hostname}.${domain}
+manage_etc_hosts: true
+
+users:
+  - name: ${username}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: ${password}
+%{ if ssh_key != "" ~}
+    ssh_authorized_keys:
+      - ${ssh_key}
+%{ endif ~}
+
+ssh_pwauth: false
+chpasswd:
+  expire: false
+
+# Agent invité Xen (xe-guest-utilities) requis pour remonter les IP et métriques à Xen Orchestra.
+# Le reste des services est installé par Ansible.
+package_update: true
+packages:
+  - xe-guest-utilities
+  - python3
+  - sudo
+  - curl
+
+runcmd:
+  - systemctl enable --now xe-linux-distribution

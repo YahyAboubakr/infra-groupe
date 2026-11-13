@@ -1,0 +1,4 @@
+---
+wazuh_install_url: "https://packages.wazuh.com/{{ wazuh_branch }}/wazuh-install.sh"
+wazuh_syslog_port: 514          # réception des alertes Suricata d'OPNsense
+wazuh_syslog_allowed_ips: []    # IP d'OPNsense

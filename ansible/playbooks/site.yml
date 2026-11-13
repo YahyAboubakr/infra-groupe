@@ -1,0 +1,4 @@
+# Déploiement complet de la partie SOC : ansible-playbook playbooks/site.yml
+- import_playbook: wazuh.yml
+- import_playbook: greenbone.yml
+- import_playbook: agents.yml

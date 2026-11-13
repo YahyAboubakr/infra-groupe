@@ -1,0 +1,28 @@
+---
+# Base commune à toutes les VM SOC.
+# TODO :
+#  - mises à jour, paquets de base (curl, gnupg, ca-certificates, chrony)
+#  - NTP pointé sur les DC (Kerberos tolère 5 min de décalage)
+#  - DNS pointé sur dc1/dc2 quand l'AD est en place
+- name: "Installation des paquets de base"
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: "Configuration du NTP"
+  ansible.builtin.template:
+    src: "chrony.conf.j2"
+    dest: "/etc/chrony/chrony.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - restart chrony
+
+- name: "Activation du service NTP"
+  ansible.builtin.service:
+    name: chrony
+    state: started
+    enabled: true
