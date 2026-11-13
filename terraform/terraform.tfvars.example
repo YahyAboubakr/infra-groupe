@@ -5,13 +5,10 @@ xo_username = "admin@admin.net"
 xo_password = "ChangeMe-XO-Password"
 xo_insecure = true
 
-xcp_host     = "192.168.1.11"
-xcp_user     = "root"
-xcp_password = "ChangeMe-XCP-Password"
 
 xo_pool_name     = "xcp-ng-pool"
-xo_template_name = "Debian 13 Cloud-Init"
-xo_sr_name       = "Local storage"
+xo_template_name = "debian-13-cloudinit"
+xo_sr_name       = "XEN1-NFS"
 xo_network_name  = "VLAN-30-SOC"
 
 ips = {

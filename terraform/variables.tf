@@ -20,29 +20,6 @@ variable "xo_insecure" {
   default     = true
 }
 
-variable "xcp_host" {
-  description = "Adresse IP ou hostname du serveur XCP-ng master (pour télécharger l'image Cloud Debian 13)"
-  type        = string
-}
-
-variable "xcp_user" {
-  description = "Utilisateur SSH de l'hôte XCP-ng"
-  type        = string
-  default     = "root"
-}
-
-variable "xcp_password" {
-  description = "Mot de passe SSH de l'hôte XCP-ng"
-  type        = string
-  sensitive   = true
-}
-
-variable "debian_cloud_image_url" {
-  description = "URL officielle de l'image Cloud Debian 13 (Trixie) au format RAW pour XCP-ng"
-  type        = string
-  default     = "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.raw"
-}
-
 variable "xo_pool_name" {
   description = "Nom du Pool XCP-ng dans Xen Orchestra"
   type        = string
