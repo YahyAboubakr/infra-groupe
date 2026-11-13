@@ -7,10 +7,11 @@ terraform {
   }
 }
 
-# Auth par token du compte svc_terraform, lu dans l'environnement :
-#   export XOA_TOKEN='...'
-# Ne jamais mettre le token (ni username/password) dans ce fichier.
+# Auth par utilisateur / mot de passe (variables, valeurs dans terraform.tfvars
+# ou TF_VAR_xo_password). Ne pas définir XOA_TOKEN en même temps.
 provider "xenorchestra" {
   url      = var.xo_url
+  username = var.xo_username
+  password = var.xo_password
   insecure = var.xo_insecure
 }

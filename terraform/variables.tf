@@ -3,6 +3,17 @@ variable "xo_url" {
   type        = string
 }
 
+variable "xo_username" {
+  description = "Utilisateur Xen Orchestra"
+  type        = string
+}
+
+variable "xo_password" {
+  description = "Mot de passe Xen Orchestra"
+  type        = string
+  sensitive   = true
+}
+
 variable "xo_insecure" {
   description = "Ignorer la vérification TLS (certificat auto-signé)"
   type        = bool

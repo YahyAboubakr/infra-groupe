@@ -1,6 +1,8 @@
 # Copier en terraform.tfvars (ignoré par Git) puis adapter.
 
 xo_url      = "wss://192.168.1.10"
+xo_username = "admin@admin.net"
+xo_password = "ChangeMe-XO-Password"
 xo_insecure = true
 
 xcp_host     = "192.168.1.11"
