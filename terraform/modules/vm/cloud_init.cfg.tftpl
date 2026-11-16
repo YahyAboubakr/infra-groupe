@@ -3,6 +3,16 @@ hostname: ${hostname}
 fqdn: ${hostname}.${domain}
 manage_etc_hosts: true
 
+write_files:
+  - path: /etc/default/keyboard
+    permissions: "0644"
+    content: |
+      XKBMODEL="pc105"
+      XKBLAYOUT="fr"
+      XKBVARIANT=""
+      XKBOPTIONS=""
+      BACKSPACE="guess"
+
 keyboard:
   layout: fr
   model: pc105
@@ -35,5 +45,6 @@ packages:
 
 runcmd:
   - systemctl enable --now xe-linux-distribution
-  - localectl set-x11-keymap fr pc105
-  - setupcon -k --force || systemctl restart keyboard-setup console-setup
+  - DEBIAN_FRONTEND=noninteractive dpkg-reconfigure keyboard-configuration
+  - systemctl restart keyboard-setup.service console-setup.service
+  - setupcon -k --force || loadkeys fr || true
