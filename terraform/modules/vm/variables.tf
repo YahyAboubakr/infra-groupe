@@ -66,3 +66,9 @@ variable "ssh_pubkey" {
   type    = string
   default = ""
 }
+
+variable "high_availability" {
+  description = "Politique HA XCP-ng : restart, best-effort ou chaîne vide"
+  type        = string
+  default     = "restart"
+}

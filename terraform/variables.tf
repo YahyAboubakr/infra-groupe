@@ -85,3 +85,21 @@ variable "ssh_pubkey_path" {
   type    = string
   default = "~/.ssh/id_ed25519.pub"
 }
+
+variable "wazuh_worker_count" {
+  description = "Nombre de nœuds Wazuh Worker supplémentaires (autoscaling)"
+  type        = number
+  default     = 0
+}
+
+variable "wazuh_worker_ip_base" {
+  description = "Préfixe /24 pour les IPs des Wazuh Workers"
+  type        = string
+  default     = "10.230.204"
+}
+
+variable "wazuh_worker_ip_start" {
+  description = "Dernier octet de départ pour les Wazuh Workers"
+  type        = number
+  default     = 60
+}

@@ -39,7 +39,8 @@ resource "xenorchestra_vm" "vm" {
   auto_poweron     = true
   power_state      = "Running"
   affinity_host    = var.affinity_host
-
+  high_availability = var.high_availability
+  
   cloud_config         = local.cloud_config
   cloud_network_config = local.cloud_network_config
 
