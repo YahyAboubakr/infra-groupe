@@ -2,22 +2,22 @@
 
 Ce dépôt couvre **ma part** de l'infra : détection et sécurité en production sur **XCP-ng / Xen Orchestra**.
 
-| Moi (ce dépôt) | Mon binôme |
-|---|---|
-| Wazuh (SIEM/XDR) + agents sur toutes les VM | Samba AD (dc1, dc2) |
-| Intégration syslog Suricata (IDS sur OPNsense) | Zabbix |
-| Greenbone / OpenVAS (scan de vulnérabilités) | |
+| Moi (ce dépôt)                                 | Mon binôme          |
+| ---------------------------------------------- | ------------------- |
+| Wazuh (SIEM/XDR) + agents sur toutes les VM    | Samba AD (dc1, dc2) |
+| Intégration syslog Suricata (IDS sur OPNsense) | Zabbix              |
+| Greenbone / OpenVAS (scan de vulnérabilités)   |                     |
 
 ---
 
 ## VM déployées
 
-| VM | Rôle | vCPU | RAM | Disque | IP (VLAN 30) |
-|---|---|---|---|---|---|
-| `wazuh1` | Wazuh all-in-one : indexer + manager + dashboard | 4 | 8 Gio | 50 Go | `192.168.30.20` |
-| `gvm1` | Greenbone Community Containers (Docker) | 4 | 8 Gio | 60 Go | `192.168.30.30` |
+| VM      | Rôle                                             | vCPU | RAM   | Disque | IP (VLAN 30)    |
+| ------- | ------------------------------------------------ | ---- | ----- | ------ | --------------- |
+| `wazuh` | Wazuh all-in-one : indexer + manager + dashboard | 4    | 8 Gio | 50 Go  | `192.168.30.20` |
+| `gvm1`  | Greenbone Community Containers (Docker)          | 4    | 8 Gio | 60 Go  | `192.168.30.30` |
 
-**Suricata** tourne directement sur le pare-feu **OPNsense** déjà en place et envoie ses alertes en syslog (`514/udp`) à `wazuh1`.
+**Suricata** tourne directement sur le pare-feu **OPNsense** déjà en place et envoie ses alertes en syslog (`514/udp`) à `wazuh`.
 
 ---
 
@@ -27,7 +27,7 @@ Ce dépôt couvre **ma part** de l'infra : détection et sécurité en productio
 .
 ├── README.md
 ├── terraform/
-│   ├── main.tf                  # Provider Xen Orchestra + déploiement wazuh1 & gvm1
+│   ├── main.tf                  # Provider Xen Orchestra + déploiement wazuh & gvm1
 │   ├── variables.tf
 │   ├── outputs.tf
 │   ├── terraform.tfvars.example # À copier en terraform.tfvars
@@ -73,6 +73,7 @@ ansible-playbook playbooks/agents.yml
 ```
 
 Accès :
+
 - **Wazuh Dashboard :** `https://192.168.30.20`
 - **Greenbone :** `http://192.168.30.30:9392`
 
@@ -80,11 +81,11 @@ Accès :
 
 ## Flux réseau à ouvrir (OPNsense)
 
-| Source | Destination | Ports | Usage |
-|---|---|---|---|
-| Toutes les VM et nœuds K8s | `wazuh1` | 1514/tcp, 1515/tcp | Agents, enrôlement |
-| OPNsense | `wazuh1` | 514/udp | Syslog + alertes Suricata |
-| Admins | `wazuh1` | 443/tcp | Dashboard |
-| `gvm1` | Toutes zones | tous | Scans de vulnérabilités |
-| Admins | `gvm1` | 9392/tcp | Interface web |
-| `wazuh1`, `gvm1` | DC (IAM) | 53, 88, 389/636, 123/udp | DNS, Kerberos, LDAP(S), NTP |
+| Source                     | Destination  | Ports                    | Usage                       |
+| -------------------------- | ------------ | ------------------------ | --------------------------- |
+| Toutes les VM et nœuds K8s | `wazuh`      | 1514/tcp, 1515/tcp       | Agents, enrôlement          |
+| OPNsense                   | `wazuh`      | 514/udp                  | Syslog + alertes Suricata   |
+| Admins                     | `wazuh`      | 443/tcp                  | Dashboard                   |
+| `gvm1`                     | Toutes zones | tous                     | Scans de vulnérabilités     |
+| Admins                     | `gvm1`       | 9392/tcp                 | Interface web               |
+| `wazuh`, `gvm1`            | DC (IAM)     | 53, 88, 389/636, 123/udp | DNS, Kerberos, LDAP(S), NTP |

@@ -20,12 +20,12 @@ data "xenorchestra_template" "debian" {
 
 locals {
   vms = {
-    wazuh1 = {
+    wazuh = {
       description = "Wazuh All-in-One (Indexer + Manager + Dashboard)"
       vcpu        = 4
       memory_mib  = 8192
       disk_gib    = 50
-      ip          = var.ips.wazuh1
+      ip          = var.ips.wazuh
     }
     gvm1 = {
       description = "Greenbone / OpenVAS Vulnerability Scanner"
