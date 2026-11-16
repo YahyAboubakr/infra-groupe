@@ -27,12 +27,12 @@ locals {
       disk_gib    = 50
       ip          = var.ips.wazuh
     }
-    gvm1 = {
+    gvm = {
       description = "Greenbone / OpenVAS Vulnerability Scanner"
       vcpu        = 4
       memory_mib  = 8192
       disk_gib    = 60
-      ip          = var.ips.gvm1
+      ip          = var.ips.gvm
     }
   }
 }

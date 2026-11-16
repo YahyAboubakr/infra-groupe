@@ -15,7 +15,7 @@ Ce dépôt couvre **ma part** de l'infra : détection et sécurité en productio
 | VM      | Rôle                                             | vCPU | RAM   | Disque | IP (VLAN 30)    |
 | ------- | ------------------------------------------------ | ---- | ----- | ------ | --------------- |
 | `wazuh` | Wazuh all-in-one : indexer + manager + dashboard | 4    | 8 Gio | 50 Go  | `192.168.30.20` |
-| `gvm1`  | Greenbone Community Containers (Docker)          | 4    | 8 Gio | 60 Go  | `192.168.30.30` |
+| `gvm`   | Greenbone Community Containers (Docker)          | 4    | 8 Gio | 60 Go  | `192.168.30.30` |
 
 **Suricata** tourne directement sur le pare-feu **OPNsense** déjà en place et envoie ses alertes en syslog (`514/udp`) à `wazuh`.
 
@@ -27,7 +27,7 @@ Ce dépôt couvre **ma part** de l'infra : détection et sécurité en productio
 .
 ├── README.md
 ├── terraform/
-│   ├── main.tf                  # Provider Xen Orchestra + déploiement wazuh & gvm1
+│   ├── main.tf                  # Provider Xen Orchestra + déploiement wazuh & gvm
 │   ├── variables.tf
 │   ├── outputs.tf
 │   ├── terraform.tfvars.example # À copier en terraform.tfvars
@@ -86,6 +86,6 @@ Accès :
 | Toutes les VM et nœuds K8s | `wazuh`      | 1514/tcp, 1515/tcp       | Agents, enrôlement          |
 | OPNsense                   | `wazuh`      | 514/udp                  | Syslog + alertes Suricata   |
 | Admins                     | `wazuh`      | 443/tcp                  | Dashboard                   |
-| `gvm1`                     | Toutes zones | tous                     | Scans de vulnérabilités     |
-| Admins                     | `gvm1`       | 9392/tcp                 | Interface web               |
-| `wazuh`, `gvm1`            | DC (IAM)     | 53, 88, 389/636, 123/udp | DNS, Kerberos, LDAP(S), NTP |
+| `gvm`                      | Toutes zones | tous                     | Scans de vulnérabilités     |
+| Admins                     | `gvm`        | 9392/tcp                 | Interface web               |
+| `wazuh`, `gvm`             | DC (IAM)     | 53, 88, 389/636, 123/udp | DNS, Kerberos, LDAP(S), NTP |

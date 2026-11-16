@@ -44,10 +44,10 @@ variable "xo_network_name" {
 
 variable "ips" {
   description = "Adresses IPv4 fixes des VM SOC (VLAN 30)"
-  type        = object({ wazuh = string, gvm1 = string })
+  type        = object({ wazuh = string, gvm = string })
   default = {
     wazuh = "192.168.30.20"
-    gvm1   = "192.168.30.30"
+    gvm   = "192.168.30.30"
   }
 }
 

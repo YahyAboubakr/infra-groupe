@@ -13,7 +13,7 @@ xo_network_name  = "VLAN-30-SOC"
 
 ips = {
   wazuh = "192.168.30.20"
-  gvm1   = "192.168.30.30"
+  gvm   = "192.168.30.30"
 }
 prefix_len  = 24
 gateway     = "192.168.30.1"
