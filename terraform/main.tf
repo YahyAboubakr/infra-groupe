@@ -27,30 +27,33 @@ data "xenorchestra_template" "debian" {
 locals {
   base_vms = {
     wazuh = {
-      description = "Wazuh All-in-One (Indexer + Manager + Dashboard)"
-      vcpu        = 4
-      memory_mib  = 8192
-      disk_gib    = 50
-      ip          = var.ips.wazuh
-      host_index  = 0
+      description       = "Wazuh All-in-One (Indexer + Manager + Dashboard)"
+      vcpu              = 4
+      memory_mib        = 8192
+      disk_gib          = 50
+      ip                = var.ips.wazuh
+      host_index        = 0
+      high_availability = "restart"
     }
     gvm = {
-      description = "Greenbone / OpenVAS Vulnerability Scanner"
-      vcpu        = 4
-      memory_mib  = 8192
-      disk_gib    = 60
-      ip          = var.ips.gvm
-      host_index  = 1
+      description       = "Greenbone / OpenVAS Vulnerability Scanner"
+      vcpu              = 4
+      memory_mib        = 8192
+      disk_gib          = 60
+      ip                = var.ips.gvm
+      host_index        = 1
+      high_availability = "restart"
     }
   }
   wazuh_workers = {
     for i in range(var.wazuh_worker_count) : "wazuh-worker-${i + 1}" => {
-      description = "Wazuh Manager Worker ${i + 1} (Autoscaling)"
-      vcpu        = 4
-      memory_mib  = 4096
-      disk_gib    = 30
-      ip          = "${var.wazuh_worker_ip_base}.${var.wazuh_worker_ip_start + i}"
-      host_index  = i + 1
+      description       = "Wazuh Manager Worker ${i + 1} (Autoscaling)"
+      vcpu              = 4
+      memory_mib        = 4096
+      disk_gib          = 30
+      ip                = "${var.wazuh_worker_ip_base}.${var.wazuh_worker_ip_start + i}"
+      host_index        = i + 1
+      high_availability = "best-effort"
     }
   }
   vms = merge(local.base_vms, local.wazuh_workers)
@@ -60,11 +63,12 @@ module "vm" {
   source   = "./modules/vm"
   for_each = local.vms
 
-  name        = each.key
-  description = each.value.description
-  vcpu        = each.value.vcpu
-  memory_mib  = each.value.memory_mib
-  disk_gib    = each.value.disk_gib
+  name              = each.key
+  description       = each.value.description
+  vcpu              = each.value.vcpu
+  memory_mib        = each.value.memory_mib
+  disk_gib          = each.value.disk_gib
+  high_availability = each.value.high_availability
 
   template_id   = data.xenorchestra_template.debian.id
   sr_id         = data.xenorchestra_sr.sr.id
