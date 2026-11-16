@@ -3,6 +3,10 @@ hostname: ${hostname}
 fqdn: ${hostname}.${domain}
 manage_etc_hosts: true
 
+keyboard:
+  layout: fr
+  model: pc105
+
 users:
   - name: ${username}
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -26,6 +30,10 @@ packages:
   - python3
   - sudo
   - curl
+  - keyboard-configuration
+  - console-setup
 
 runcmd:
   - systemctl enable --now xe-linux-distribution
+  - localectl set-x11-keymap fr pc105
+  - setupcon -k --force || systemctl restart keyboard-setup console-setup
