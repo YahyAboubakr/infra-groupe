@@ -29,7 +29,7 @@
 
 - name: Installation all-in-one de Wazuh
   ansible.builtin.command:
-    cmd: bash /root/wazuh-install.sh -a
+    cmd: bash /root/wazuh-install.sh -a -i
     chdir: /root
     creates: /var/ossec/bin/wazuh-control
   async: 3600
@@ -52,5 +52,5 @@
         <port>{{ wazuh_syslog_port }}</port>
         <protocol>udp</protocol>
         <allowed-ips>{{ wazuh_syslog_allowed_ips | join(',') }}</allowed-ips>
-      <remote>
-    notify: restart wazuh-manager
+      </remote>
+  notify: restart wazuh-manager

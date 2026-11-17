@@ -1,4 +1,5 @@
-# Pose l'agent Wazuh sur les groupes de wazuh_agents (greenbone, dc, zabbix, k8s_nodes).
+# Pose l'agent Wazuh sur les VM SOC (greenbone).
+# Les autres équipes intègrent le rôle wazuh_agent directement dans leurs playbooks.
 - name: Agents Wazuh
   hosts: wazuh_agents
   roles: [common, wazuh_agent]

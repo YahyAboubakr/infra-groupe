@@ -1,41 +1,94 @@
 ---
-# TODO :
-#  1. dépôt APT Wazuh 4.x (clé GPG + sources.list)
-#  2. installer wazuh-agent avec WAZUH_MANAGER={{ wazuh_manager_address }}
-#     et WAZUH_AGENT_GROUP={{ wazuh_agent_group }} (auto-enrôlement sur 1515)
-#  3. ajouter un <localfile> json par entrée de wazuh_extra_json_logs
-#  4. sur les nœuds K8s control-plane : lire le log d'audit de l'API server
-#  5. activer et démarrer le service
+- name: Vérifier que l'adresse du serveur Wazuh est définie
+  ansible.builtin.assert:
+    that:
+      - wazuh_manager_address is defined
+      - wazuh_manager_address | length > 0
+    fail_msg: "La variable wazuh_manager_address doit être renseignée (ex: 10.230.204.50)."
+    quiet: true
 
-- name: Dossier des clés APT
-  ansible.builtin.file:
-    url: /etc/apt/keyrings
-    state: directory
-    mode: "0755"
+# --- Installation sur Debian / Ubuntu ---
+- name: Installation Wazuh Agent (Debian / Ubuntu)
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Prérequis APT pour le dépôt Wazuh
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - python3-apt
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
 
-- name: Clé GPG Wazuh
-  ansible.builtin.get_url:
-    url: https://packages.wazuh.com/key/GPG-KEY-WAZUH
-    dest: /etc/apt/keyrings/wazuh.asc
-    mode: "0644"
+    - name: Dossier des clés APT
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
 
-- name: Dépôt APT Wazuh
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/wazuh.asc] https://packages.wazuh.com/4.x/apt/ stable main"
-    filename: wazuh
-    state: present
+    - name: Clé GPG Wazuh
+      ansible.builtin.get_url:
+        url: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+        dest: /etc/apt/keyrings/wazuh.asc
+        mode: "0644"
 
-- name: Installation de Wazuh Agent
-  ansible.builtin.apt:
-    name: wazuh-agent
-    state: present
-    update_cache: true
-  environment:
-    WAZUH_MANAGER: "{{ wazuh_manager_address }}"
-    WAZUH_AGENT_GROUP: "{{ wazuh_agent_group }}"
+    - name: Dépôt APT Wazuh 4.x
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/wazuh.asc] https://packages.wazuh.com/4.x/apt/ stable main"
+        filename: wazuh
+        state: present
+
+    - name: Installation du paquet wazuh-agent (APT)
+      ansible.builtin.apt:
+        name: wazuh-agent
+        state: present
+        update_cache: true
+      environment:
+        WAZUH_MANAGER: "{{ wazuh_manager_address }}"
+        WAZUH_AGENT_GROUP: "{{ wazuh_agent_group }}"
+        WAZUH_AGENT_NAME: "{{ wazuh_agent_name if (wazuh_agent_name | length > 0) else omit }}"
+      notify: restart wazuh-agent
+
+# --- Installation sur RHEL / Rocky / AlmaLinux / CentOS ---
+- name: Installation Wazuh Agent (RedHat / Rocky / Alma)
+  when: ansible_os_family == "RedHat"
+  block:
+    - name: Import de la clé GPG Wazuh (RPM)
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+
+    - name: Dépôt YUM Wazuh 4.x
+      ansible.builtin.yum_repository:
+        name: wazuh
+        description: Wazuh repository
+        baseurl: https://packages.wazuh.com/4.x/yum/
+        gpgcheck: true
+        gpgkey: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+        protect: true
+        enabled: true
+
+    - name: Installation du paquet wazuh-agent (YUM/DNF)
+      ansible.builtin.package:
+        name: wazuh-agent
+        state: present
+      environment:
+        WAZUH_MANAGER: "{{ wazuh_manager_address }}"
+        WAZUH_AGENT_GROUP: "{{ wazuh_agent_group }}"
+        WAZUH_AGENT_NAME: "{{ wazuh_agent_name if (wazuh_agent_name | length > 0) else omit }}"
+      notify: restart wazuh-agent
+
+# --- Configuration commune (idempotente) ---
+- name: Vérifier l'adresse du Manager dans ossec.conf
+  ansible.builtin.replace:
+    path: /var/ossec/etc/ossec.conf
+    regexp: '(<server>\s*<address>)[^<]+(</address>)'
+    replace: '\g<1>{{ wazuh_manager_address }}\g<2>'
   notify: restart wazuh-agent
 
-- name: Logs JSON supplémentaires
+- name: Logs JSON supplémentaires dans ossec.conf
   ansible.builtin.blockinfile:
     path: /var/ossec/etc/ossec.conf
     marker: "<!-- {mark} ANSIBLE extra json logs -->"
@@ -47,11 +100,12 @@
         <location>{{ log }}</location>
       </localfile>
       {% endfor %}
-    when: wazuh_extra_json_logs | length > 0
-    notify: restart wazuh-agent
+  when: wazuh_extra_json_logs | length > 0
+  notify: restart wazuh-agent
 
-- name: Activer et démarrer le service Wazuh Agent
-  ansible.builtin.service:
+- name: Activer et démarrer le service wazuh-agent
+  ansible.builtin.systemd:
     name: wazuh-agent
+    daemon_reload: true
     enabled: true
     state: started

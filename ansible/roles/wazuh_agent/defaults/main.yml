@@ -1,3 +1,14 @@
 ---
-wazuh_agent_group: default      # groupe d'agents côté manager (linux, k8s, ...)
-wazuh_extra_json_logs: []       # ex: ["/var/log/suricata/eve.json"]
+# Adresse IP ou FQDN du serveur Wazuh Manager (SOC)
+wazuh_manager_address: "10.230.204.50"
+
+# Groupe d'agents côté Wazuh Manager (doit exister sur le serveur Wazuh avant l'enrôlement)
+# Exemples : default, k8s, iam, monitoring
+wazuh_agent_group: "default"
+
+# Nom personnalisé de l'agent (optionnel, par défaut : hostname de la machine)
+wazuh_agent_name: ""
+
+# Liste optionnelle de fichiers de logs JSON à collecter en plus des logs système
+# Exemple : ["/var/log/kubernetes/audit.log"]
+wazuh_extra_json_logs: []

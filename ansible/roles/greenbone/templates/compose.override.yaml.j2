@@ -1,4 +1,7 @@
 services:
+    gvm-config:
+        environment:
+            NGINX_HOST: "{{ ansible_host }}"
     nginx:
         ports: !override
             - "{{ greenbone_bind_address }}:{{ greenbone_web_port }}:9392"

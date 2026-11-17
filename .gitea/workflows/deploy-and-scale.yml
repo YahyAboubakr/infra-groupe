@@ -1,0 +1,47 @@
+name: Redeploiement et Autoscaling SOC
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      wazuh_worker_count:
+        description: "Nombre de Wazuh Workers à déployer"
+        required: false
+        default: "0"
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # label de ton Gitea Runner dédié
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Provisioning Terraform (XCP-ng / Xen Orchestra)
+        working-directory: terraform
+        env:
+          TF_VAR_xo_url: ${{ secrets.XO_URL }}
+          TF_VAR_xo_username: ${{ secrets.XO_USERNAME }}
+          TF_VAR_xo_password: ${{ secrets.XO_PASSWORD }}
+          TF_VAR_vm_password: ${{ secrets.VM_PASSWORD }}
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="wazuh_worker_count=${{ github.event.inputs.wazuh_worker_count || '0' }}"
+
+      - name: Générer l'inventaire dynamique des workers
+        working-directory: terraform
+        run: |
+          WORKERS_JSON=$(terraform output -json wazuh_workers)
+          echo "Workers déployés : $WORKERS_JSON"
+          # Met à jour un fichier d'inventaire additionnel si besoin pour Ansible
+
+      - name: Déploiement / Mise à jour Ansible
+        working-directory: ansible
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          echo "$ANSIBLE_VAULT_PASSWORD" > /tmp/vault_pass
+          ansible-playbook playbooks/site.yml --vault-password-file /tmp/vault_pass
+          rm -f /tmp/vault_pass

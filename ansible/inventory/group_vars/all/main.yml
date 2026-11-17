@@ -1,20 +1,20 @@
-ansible_user: admin
+ansible_user: "admin"
 
 # --- Domaine AD ---
-ad_domain: ad.groupe.lan
-ad_base_dn: DC=ad,DC=groupe,DC=lan
-ad_ldap_host: dc1.ad.groupe.lan
-ad_ldap_bind_dn: CN=svc_ldap_bind,OU=Comptes-Service,DC=ad,DC=groupe,DC=lan
+ad_domain: ad.example.test
+ad_base_dn: DC=ad,DC=example,DC=test
+ad_ldap_host: dc1.ad.example.test
+ad_ldap_bind_dn: CN=svc_ldap_bind,OU=Comptes-Service,DC=ad,DC=example,DC=test
 # ad_ldap_bind_password: dans un vault Ansible, jamais en clair ici
 
 # --- Wazuh ---
 wazuh_branch: "4.14"
-wazuh_manager_address: 192.168.30.20
-
+wazuh_manager_address: "{{ hostvars['wazuh']['ansible_host'] }}"
 # À décommenter si Samba sert de NTP
 # ntp_servers:
 #   - 192.168.30.10
 
 greenbone_admin_password: "{{ vault_greenbone_admin_password }}"
 
-wazuh_syslog_allowed_ips: [""]
+wazuh_syslog_allowed_ips:
+  - "10.230.204.254"
